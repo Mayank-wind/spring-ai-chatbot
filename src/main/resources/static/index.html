@@ -100,6 +100,12 @@
 
     <div id="chat" class="chat"></div>
 
+    <div style="padding:10px;">
+        <input type="file" id="pdfFile">
+        <input type="text" id="pdfQuestion" placeholder="Ask question about pdf">
+        <button onclick="askPdf()">Ask PDF</button>
+    </div>
+
     <div class="input-area">
         <input id="message" placeholder="Ask something..." />
         <button onclick="send()">Send</button>
@@ -141,6 +147,28 @@
     send()
     }
     })
+
+    async function askPdf(){
+
+let file = document.getElementById("pdfFile").files[0]
+let question = document.getElementById("pdfQuestion").value
+
+let formData = new FormData()
+formData.append("file", file)
+formData.append("question", question)
+
+let response = await fetch("/ask-pdf",{
+method:"POST",
+body:formData
+})
+
+let result = await response.text()
+
+let chat = document.getElementById("chat")
+
+chat.innerHTML += `<div class="message ai">${result}</div>`
+
+}
 
 </script>
 
