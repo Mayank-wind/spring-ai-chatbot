@@ -128,47 +128,56 @@
 
     input.value=""
 
-    chat.innerHTML += `<div class="message ai" id="loading">AI typing...</div>`
+    let aiMessage = document.createElement("div")
+    aiMessage.className = "message ai"
+    chat.appendChild(aiMessage)
 
-    let response = await fetch(`/ask?message=${encodeURIComponent(text)}`)
+    let response = await fetch(`/ask-stream?message=${encodeURIComponent(text)}`)
 
-    let result = await response.text()
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
 
-    document.getElementById("loading").remove()
+    while(true){
 
-    chat.innerHTML += `<div class="message ai">${result}</div>`
+    const {done,value} = await reader.read()
+
+    if(done) break
+
+    let chunk = decoder.decode(value)
+
+    // CLEAN SSE FORMAT
+    chunk = chunk.replaceAll("data:", "")
+    chunk = chunk.replaceAll("\n", "")
+
+    aiMessage.innerHTML += chunk
 
     chat.scrollTop = chat.scrollHeight
 
     }
 
-    document.getElementById("message").addEventListener("keypress",function(e){
-    if(e.key === "Enter"){
-    send()
     }
+
+        async function askPdf(){
+
+    let file = document.getElementById("pdfFile").files[0]
+    let question = document.getElementById("pdfQuestion").value
+
+    let formData = new FormData()
+    formData.append("file", file)
+    formData.append("question", question)
+
+    let response = await fetch("/ask-pdf",{
+    method:"POST",
+    body:formData
     })
 
-    async function askPdf(){
+    let result = await response.text()
 
-let file = document.getElementById("pdfFile").files[0]
-let question = document.getElementById("pdfQuestion").value
+    let chat = document.getElementById("chat")
 
-let formData = new FormData()
-formData.append("file", file)
-formData.append("question", question)
+    chat.innerHTML += `<div class="message ai">${result}</div>`
 
-let response = await fetch("/ask-pdf",{
-method:"POST",
-body:formData
-})
-
-let result = await response.text()
-
-let chat = document.getElementById("chat")
-
-chat.innerHTML += `<div class="message ai">${result}</div>`
-
-}
+    }
 
 </script>
 
