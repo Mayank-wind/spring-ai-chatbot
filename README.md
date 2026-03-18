@@ -14,6 +14,12 @@ Features
 - ChatGPT-style UI
 - No paid API required
 
+  Advanced Features
+
+- Real-time streaming responses (SSE)
+- Chatmemory (content-aware coonversation)
+- PDF Q&A (basic document understanding)
+
 ---
 
 Tech Stack
@@ -75,7 +81,7 @@ Explain Spring Boot
 
 Future Improvements
 
-- Chat memory
-- Streaming responses
-- Document Q&A (RAG)
+- Session-based memory (multi-user support)
+- Vector database (RAG for large PDFs
+- Chat history UI (like ChatGPT sidebar)
 - Voice chatbot
