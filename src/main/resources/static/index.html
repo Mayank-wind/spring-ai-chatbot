@@ -90,29 +90,43 @@
 
 </head>
 
+
+
 <body>
 
-<div class="container">
+<div style="display:flex; height:100vh; width:100%;">
 
-    <div class="header">
-        Spring AI Chatbot
+
+    <div id="sidebar" style="width:250px; background:#020617; padding:10px; overflow-y:auto;">
+        <button onclick="newChat()" style="width:100%; padding:10px; margin-bottom:10px;">
+            + New Chat
+        </button>
+        <div id="chatList"></div>
     </div>
 
-    <div id="chat" class="chat"></div>
 
-    <div style="padding:10px;">
-        <input type="file" id="pdfFile">
-        <input type="text" id="pdfQuestion" placeholder="Ask question about pdf">
-        <button onclick="askPdf()">Ask PDF</button>
-    </div>
+    <div class="container">
 
-    <div class="input-area">
-        <input id="message" placeholder="Ask something..." />
-        <button onclick="send()">Send</button>
+        <div class="header">
+            Spring AI Chatbot
+        </div>
+
+        <div id="chat" class="chat"></div>
+
+        <div style="padding:10px;">
+            <input type="file" id="pdfFile">
+            <input type="text" id="pdfQuestion" placeholder="Ask question about pdf">
+            <button onclick="askPdf()">Ask PDF</button>
+        </div>
+
+        <div class="input-area">
+            <input id="message" placeholder="Ask something..." />
+            <button onclick="send()">Send</button>
+        </div>
+
     </div>
 
 </div>
-
 <script>
 
     let sessionId = localStorage.getItem("sessionId");
@@ -121,7 +135,50 @@ if (!sessionId) {
    sessionId = Date.now().toString();
    localStorage.setItem("sessionId", sessionId);
 }
+
+let chats = JSON.parse(localStorage.getItem("chats")) || []
+let currentSessionId = null
+
+function saveChats(){
+    localStorage.setItem("chats", JSON.stringify(chats))
+}
+
+function renderChats(){
+    let chatList = document.getElementById("chatList")
+    chatList.innerHTML = ""
+
+    chats.forEach(id => {
+        let div = document.createElement("div")
+        div.innerText = "Chat " + id
+        div.style.padding = "10px"
+        div.style.cursor = "pointer"
+        div.style.borderBottom = "1px solid #334155"
+
+        div.onclick = () => switchChat(id)
+
+        chatList.appendChild(div)
+    })
+}
+
+function newChat(){
+    let id = Date.now().toString()
+
+    chats.push(id)
+    saveChats()
+
+    switchChat(id)
+}
+
+function switchChat(id){
+    currentSessionId = id
+    localStorage.setItem("sessionId", id)
+
+    document.getElementById("chat").innerHTML = ""
+}
+
+
    async function send(){
+
 
    let input = document.getElementById("message")
    let text = input.value.trim()
@@ -138,7 +195,7 @@ if (!sessionId) {
    aiMessage.className = "message ai"
    chat.appendChild(aiMessage)
 
-   let response = await fetch(`/ask-stream?message=${message}&{sessionId}`)
+   let response = await fetch(`/ask-stream?message=${text}&sessionId=${currentSessionId}`)
 
    const reader = response.body.getReader()
    const decoder = new TextDecoder()
@@ -184,6 +241,16 @@ if (!sessionId) {
    chat.innerHTML += `<div class="message ai">${result}</div>`
 
    }
+
+    window.onload = () => {
+    renderChats()
+
+    if(chats.length === 0){
+        newChat()
+    } else {
+        switchChat(chats[0])
+    }
+}
 
 </script>
 
