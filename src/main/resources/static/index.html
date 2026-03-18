@@ -115,69 +115,75 @@
 
 <script>
 
-    async function send(){
+    let sessionId = localStorage.getItem("sessionId");
 
-    let input = document.getElementById("message")
-    let text = input.value.trim()
+if (!sessionId) {
+   sessionId = Date.now().toString();
+   localStorage.setItem("sessionId", sessionId);
+}
+   async function send(){
 
-    if(text === "") return
+   let input = document.getElementById("message")
+   let text = input.value.trim()
 
-    let chat = document.getElementById("chat")
+   if(text === "") return
 
-    chat.innerHTML += `<div class="message user">${text}</div>`
+   let chat = document.getElementById("chat")
 
-    input.value=""
+   chat.innerHTML += `<div class="message user">${text}</div>`
 
-    let aiMessage = document.createElement("div")
-    aiMessage.className = "message ai"
-    chat.appendChild(aiMessage)
+   input.value=""
 
-    let response = await fetch(`/ask-stream?message=${encodeURIComponent(text)}`)
+   let aiMessage = document.createElement("div")
+   aiMessage.className = "message ai"
+   chat.appendChild(aiMessage)
 
-    const reader = response.body.getReader()
-    const decoder = new TextDecoder()
+   let response = await fetch(`/ask-stream?message=${message}&{sessionId}`)
 
-    while(true){
+   const reader = response.body.getReader()
+   const decoder = new TextDecoder()
 
-    const {done,value} = await reader.read()
+   while(true){
 
-    if(done) break
+   const {done,value} = await reader.read()
 
-    let chunk = decoder.decode(value)
+   if(done) break
 
-    // CLEAN SSE FORMAT
-    chunk = chunk.replaceAll("data:", "")
-    chunk = chunk.replaceAll("\n", "")
+   let chunk = decoder.decode(value)
 
-    aiMessage.innerHTML += chunk
+   // CLEAN SSE FORMAT
+   chunk = chunk.replaceAll("data:", "")
+   chunk = chunk.replaceAll("\n", "")
 
-    chat.scrollTop = chat.scrollHeight
+   aiMessage.innerHTML += chunk
 
-    }
+   chat.scrollTop = chat.scrollHeight
 
-    }
+   }
 
-        async function askPdf(){
+   }
 
-    let file = document.getElementById("pdfFile").files[0]
-    let question = document.getElementById("pdfQuestion").value
+       async function askPdf(){
 
-    let formData = new FormData()
-    formData.append("file", file)
-    formData.append("question", question)
+   let file = document.getElementById("pdfFile").files[0]
+   let question = document.getElementById("pdfQuestion").value
 
-    let response = await fetch("/ask-pdf",{
-    method:"POST",
-    body:formData
-    })
+   let formData = new FormData()
+   formData.append("file", file)
+   formData.append("question", question)
 
-    let result = await response.text()
+   let response = await fetch("/ask-pdf",{
+   method:"POST",
+   body:formData
+   })
 
-    let chat = document.getElementById("chat")
+   let result = await response.text()
 
-    chat.innerHTML += `<div class="message ai">${result}</div>`
+   let chat = document.getElementById("chat")
 
-    }
+   chat.innerHTML += `<div class="message ai">${result}</div>`
+
+   }
 
 </script>
 
