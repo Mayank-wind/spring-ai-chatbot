@@ -4,6 +4,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+
 @RestController
 public class AiController {
 
@@ -48,5 +50,10 @@ public class AiController {
     public String reset(@RequestParam String sessionId){
         ChatMemoryStore.getMessages(sessionId).clear();
         return "Chat cleared!";
+    }
+
+    @GetMapping("/history")
+    public List<String> getHistory(@RequestParam String sessionId){
+        return ChatMemoryStore.get(sessionId);
     }
 }

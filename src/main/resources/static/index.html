@@ -161,19 +161,20 @@ function renderChats(){
 }
 
 function newChat(){
-    let id = Date.now().toString()
 
-    chats.push(id)
+    let newId = Date.now().toString()
+    chats.push(newId)
     saveChats()
-
-    switchChat(id)
+    currentSessionId = newId
+    localStorage.setItem("sessionId", newId)
+    renderChats()
+    document.getElementById("chat").innerHTML = ""
 }
 
 function switchChat(id){
     currentSessionId = id
     localStorage.setItem("sessionId", id)
-
-    document.getElementById("chat").innerHTML = ""
+    loadChat(id)
 }
 
 
@@ -252,6 +253,46 @@ function switchChat(id){
     }
 }
 
+    async function loadChat(sessionId){
+
+    localStorage.setItem("sessionId", sessionId)
+
+    let response = await fetch(`/history?sessionId=${sessionId}`)
+    let messages = await response.json()
+
+    let chat = document.getElementById("chat")
+    chat.innerHTML = ""
+
+    messages.forEach(msg => {
+
+        let div = document.createElement("div")
+
+        if(msg.startsWith("User:")){
+            div.className = "message user"
+            div.innerText = msg.replace("User: ", "")
+        } else {
+            div.className = "message ai"
+            div.innerText = msg.replace("AI: ", "")
+        }
+
+        chat.appendChild(div)
+    })
+}
+
+    function addChatToSidebar(id){
+
+    let chatList = document.getElementById("chatList")
+
+    let div = document.createElement("div")
+    div.innerText = "Chat " + id
+
+    div.style.padding = "8px"
+    div.style.cursor = "pointer"
+
+    div.onclick = () => switchChat(id)
+
+    chatList.appendChild(div)
+}
 </script>
 
 </body>

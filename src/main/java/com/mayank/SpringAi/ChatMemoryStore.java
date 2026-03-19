@@ -15,4 +15,8 @@ public class ChatMemoryStore {
     public static void addMessage(String sessionID, String message){
         getMessages(sessionID).add(message);
     }
+
+    public static List<String> get(String sessionId){
+        return memory.getOrDefault(sessionId, new ArrayList<>());
+    }
 }
