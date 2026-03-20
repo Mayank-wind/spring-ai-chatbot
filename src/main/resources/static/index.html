@@ -147,29 +147,90 @@ function renderChats(){
     let chatList = document.getElementById("chatList")
     chatList.innerHTML = ""
 
-    chats.forEach(id => {
-        let div = document.createElement("div")
-        div.innerText = "Chat " + id
-        div.style.padding = "10px"
-        div.style.cursor = "pointer"
-        div.style.borderBottom = "1px solid #334155"
+    chats.forEach(chat => {
+        let wrapper = document.createElement("div")
+wrapper.style.display = "flex"
+wrapper.style.justifyContent = "space-between"
+wrapper.style.alignItems = "center"
+wrapper.style.padding = "8px"
+wrapper.style.borderBottom = "1px solid #334155"
 
-        div.onclick = () => switchChat(id)
+let title = document.createElement("span")
+title.innerText = chat.title
+title.style.cursor = "pointer"
 
-        chatList.appendChild(div)
-    })
+title.onclick = () => switchChat(chat.id)
+
+let edit = document.createElement("button")
+edit.innerText = "🦭"
+edit.style.background = "transparent"
+edit.style.border = "none"
+edit.style.cursor = "pointer"
+edit.style.color = "white"
+
+edit.onclick = (e) => {
+    e.stopPropagation()
+
+    let newName = prompt("Rename chat:", chat.title)
+
+    if(newName){
+        chat.title = newName
+        saveChats()
+        renderChats()
+    }
+}
+     let del = document.createElement("button")
+del.innerText = "👺"
+del.style.background = "transparent"
+del.style.border = "none"
+del.style.cursor = "pointer"
+del.style.color = "red"
+del.style.marginLeft = "5px"
+
+del.onclick = (e) => {
+    e.stopPropagation()
+    deleteChat(chat.id)
+}
+
+
+// create actions container
+let actions = document.createElement("div")
+
+actions.appendChild(edit)
+actions.appendChild(del)
+
+// add to wrapper
+wrapper.appendChild(title)
+wrapper.appendChild(actions)
+
+chatList.appendChild(wrapper)})
 }
 
 function newChat(){
 
     let newId = Date.now().toString()
-    chats.push(newId)
+
+    let name = prompt("Enter chat name:")
+
+    if(!name) name = "New Chat"
+
+    let newChatObj = {
+        id: newId,
+        title: name
+    }
+
+    chats.push({...newChatObj})
     saveChats()
+
     currentSessionId = newId
     localStorage.setItem("sessionId", newId)
+
     renderChats()
+
     document.getElementById("chat").innerHTML = ""
 }
+
+
 
 function switchChat(id){
     currentSessionId = id
@@ -177,26 +238,21 @@ function switchChat(id){
     loadChat(id)
 }
 
-
    async function send(){
-
-
    let input = document.getElementById("message")
    let text = input.value.trim()
-
    if(text === "") return
-
    let chat = document.getElementById("chat")
-
    chat.innerHTML += `<div class="message user">${text}</div>`
-
    input.value=""
 
    let aiMessage = document.createElement("div")
    aiMessage.className = "message ai"
    chat.appendChild(aiMessage)
 
-   let response = await fetch(`/ask-stream?message=${text}&sessionId=${currentSessionId}`)
+   let sid = currentSessionId || localStorage.getItem("sessionId")
+
+let response = await fetch(`/ask-stream?message=${text}&sessionId=${sid}`)
 
    const reader = response.body.getReader()
    const decoder = new TextDecoder()
@@ -249,7 +305,7 @@ function switchChat(id){
     if(chats.length === 0){
         newChat()
     } else {
-        switchChat(chats[0])
+        switchChat(chats[0].id)
     }
 }
 
@@ -292,6 +348,29 @@ function switchChat(id){
     div.onclick = () => switchChat(id)
 
     chatList.appendChild(div)
+}
+
+    function deleteChat(id){
+
+    fetch(`/reset?sessionId=${id}`)
+
+    // 1. Remove from chats array
+    chats = chats.filter(c => c.id !== id)
+
+    saveChats()
+
+    // 2. If current chat deleted → switch
+    if(currentSessionId === id){
+
+        if(chats.length > 0){
+            switchChat(chats[0].id)
+        } else {
+            document.getElementById("chat").innerHTML = ""
+            currentSessionId = null
+        }
+    }
+
+    renderChats()
 }
 </script>
 
