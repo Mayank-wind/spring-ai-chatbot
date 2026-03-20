@@ -205,6 +205,7 @@ function renderChats(){
             let newName = prompt("Rename chat:", chat.title)
             if(newName){
                 chat.title = newName
+                chat.isCustomTitle = true
                 saveChats()
                 renderChats()
             }
@@ -240,14 +241,10 @@ function renderChats(){
 function newChat(){
 
     let newId = Date.now().toString()
-
-    let name = prompt("Enter chat name:")
-
-    if(!name) name = "New Chat"
-
     let newChatObj = {
         id: newId,
-        title: name
+        title: "New Chat",
+        isCustomTitle: false
     }
 
     chats.push({...newChatObj})
@@ -273,6 +270,16 @@ function switchChat(id){
    let input = document.getElementById("message")
    let text = input.value.trim()
    if(text === "") return
+
+
+   // AUTO TITLE (only first message)
+let currentChat = chats.find(c => c.id === currentSessionId)
+if(currentChat && !currentChat.isCustomTitle){
+    let words = text.split(" ").slice(0, 4).join(" ")
+    currentChat.title = words
+    saveChats()
+    renderChats()
+}
    let chat = document.getElementById("chat")
    chat.innerHTML += `<div class="message user">${text}</div>`
    input.value=""
