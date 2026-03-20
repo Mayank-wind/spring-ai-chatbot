@@ -18,13 +18,14 @@
         }
 
         .container{
-        width:700px;
-        height:600px;
-        background:#1e293b;
-        border-radius:10px;
-        display:flex;
-        flex-direction:column;
-        }
+    width:700px;
+    height:600px;
+    background:#1e293b;
+    border-radius:12px;
+    display:flex;
+    flex-direction:column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
 
         .header{
         padding:15px;
@@ -43,16 +44,19 @@
         }
 
         .message{
-        margin:10px 0;
-        padding:10px;
-        border-radius:8px;
-        max-width:80%;
-        }
+    margin:10px 0;
+    padding:12px;
+    border-radius:12px;
+    max-width:75%;
+    line-height:1.4;
+    font-size:14px;
+    animation: fadeIn 0.2s ease-in;
+}
 
         .user{
-        background:#2563eb;
-        align-self:flex-end;
-        }
+    background: linear-gradient(135deg,#2563eb,#1d4ed8);
+    align-self:flex-end;
+}
 
         .ai{
         background:#334155;
@@ -66,12 +70,14 @@
         }
 
         input{
-        flex:1;
-        padding:10px;
-        border:none;
-        border-radius:5px;
-        outline:none;
-        }
+    flex:1;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    outline:none;
+    background:#020617;
+    color:white;
+}
 
         button{
         margin-left:10px;
@@ -86,6 +92,11 @@
         button:hover{
         background:#16a34a;
         }
+
+        @keyframes fadeIn {
+    from {opacity:0; transform:translateY(5px);}
+    to {opacity:1; transform:translateY(0);}
+}
     </style>
 
 </head>
@@ -143,67 +154,87 @@ function saveChats(){
     localStorage.setItem("chats", JSON.stringify(chats))
 }
 
+
 function renderChats(){
     let chatList = document.getElementById("chatList")
     chatList.innerHTML = ""
 
     chats.forEach(chat => {
+
         let wrapper = document.createElement("div")
-wrapper.style.display = "flex"
-wrapper.style.justifyContent = "space-between"
-wrapper.style.alignItems = "center"
-wrapper.style.padding = "8px"
-wrapper.style.borderBottom = "1px solid #334155"
+        wrapper.style.display = "flex"
+        wrapper.style.justifyContent = "space-between"
+        wrapper.style.alignItems = "center"
+        wrapper.style.padding = "8px"
+        wrapper.style.borderBottom = "1px solid #334155"
+        wrapper.style.borderRadius = "6px"
+        wrapper.style.transition = "all 0.2s ease"
 
-let title = document.createElement("span")
-title.innerText = chat.title
-title.style.cursor = "pointer"
-
-title.onclick = () => switchChat(chat.id)
-
-let edit = document.createElement("button")
-edit.innerText = "🦭"
-edit.style.background = "transparent"
-edit.style.border = "none"
-edit.style.cursor = "pointer"
-edit.style.color = "white"
-
-edit.onclick = (e) => {
-    e.stopPropagation()
-
-    let newName = prompt("Rename chat:", chat.title)
-
-    if(newName){
-        chat.title = newName
-        saveChats()
-        renderChats()
-    }
-}
-     let del = document.createElement("button")
-del.innerText = "👺"
-del.style.background = "transparent"
-del.style.border = "none"
-del.style.cursor = "pointer"
-del.style.color = "red"
-del.style.marginLeft = "5px"
-
-del.onclick = (e) => {
-    e.stopPropagation()
-    deleteChat(chat.id)
+        if(chat.id === currentSessionId){
+    wrapper.style.background = "#1e293b"
+    wrapper.style.boxShadow = "0 0 0 1px #334155 inset"
 }
 
+        // HOVER EFFECT
+        wrapper.onmouseover = () => {
+            wrapper.style.background = "#334155"
+            wrapper.style.transform = "translateX(4px)"
+            actions.style.display = "flex"
+        }
 
-// create actions container
-let actions = document.createElement("div")
+        wrapper.onmouseout = () => {
+    wrapper.style.background = chat.id === currentSessionId ? "#1e293b" : "transparent"
+    wrapper.style.transform = "translateX(0)"
+    actions.style.display = "none"
+}
 
-actions.appendChild(edit)
-actions.appendChild(del)
+        let title = document.createElement("span")
+        title.innerText = chat.title
+        title.style.cursor = "pointer"
+        title.onclick = () => switchChat(chat.id)
 
-// add to wrapper
-wrapper.appendChild(title)
-wrapper.appendChild(actions)
+        let edit = document.createElement("button")
+        edit.innerText = "🦭"
+        edit.style.background = "transparent"
+        edit.style.border = "none"
+        edit.style.cursor = "pointer"
+        edit.style.color = "white"
 
-chatList.appendChild(wrapper)})
+        edit.onclick = (e) => {
+            e.stopPropagation()
+            let newName = prompt("Rename chat:", chat.title)
+            if(newName){
+                chat.title = newName
+                saveChats()
+                renderChats()
+            }
+        }
+
+        let del = document.createElement("button")
+        del.innerText = "👺"
+        del.style.background = "transparent"
+        del.style.border = "none"
+        del.style.cursor = "pointer"
+        del.style.color = "red"
+        del.style.marginLeft = "5px"
+
+        del.onclick = (e) => {
+            e.stopPropagation()
+            deleteChat(chat.id)
+        }
+
+        // ACTIONS CONTAINER
+        let actions = document.createElement("div")
+        actions.style.display = "none"
+        actions.appendChild(edit)
+        actions.appendChild(del)
+
+        // APPEND
+        wrapper.appendChild(title)
+        wrapper.appendChild(actions)
+
+        chatList.appendChild(wrapper)
+    })
 }
 
 function newChat(){
@@ -376,3 +407,5 @@ let response = await fetch(`/ask-stream?message=${text}&sessionId=${sid}`)
 
 </body>
 </html>
+
+
