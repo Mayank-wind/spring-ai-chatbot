@@ -24,10 +24,16 @@ public class AiController {
         var history = ChatMemoryStore.getMessages(sessionId);
 
         // 2. Add user message
-        history.add("User: " + message);
+        ChatMemoryStore.addMessage(sessionId,"User: "+message);
 
         // 3. Create full prompt
-        String fullPrompt = String.join("\n", history);
+        int limit = 10;
+        List<String> recentMessages = history.stream().skip(Math.max(0, history.size() - limit)).toList();
+        String systemPrompt = """
+                you are a helpful AI assistant.
+                Answer clearly and concisely.
+                """;
+        String fullPrompt = systemPrompt + "\n" + String.join("\n",recentMessages);
 
         // 4. Prepare response collector
         StringBuilder aiResponse = new StringBuilder();
